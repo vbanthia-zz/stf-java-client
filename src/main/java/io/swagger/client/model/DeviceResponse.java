@@ -12,23 +12,23 @@ import io.swagger.annotations.ApiModelProperty;
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaClientCodegen", date = "2016-01-21T02:18:31.391Z")
 public class DeviceResponse   {
-  
-  private Object device = null;
 
-  
+  private DeviceListResponseDevices device = null;
+
+
   /**
    **/
-  
+
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("device")
-  public Object getDevice() {
+  public DeviceListResponseDevices getDevice() {
     return device;
   }
-  public void setDevice(Object device) {
+  public void setDevice(DeviceListResponseDevices device) {
     this.device = device;
   }
 
-  
+
 
   @Override
   public boolean equals(Object o) {
@@ -53,7 +53,7 @@ public class DeviceResponse   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class DeviceResponse {\n");
-    
+
     sb.append("    device: ").append(toIndentedString(device)).append("\n");
     sb.append("}");
     return sb.toString();
@@ -70,4 +70,3 @@ public class DeviceResponse   {
     return o.toString().replace("\n", "\n    ");
   }
 }
-
