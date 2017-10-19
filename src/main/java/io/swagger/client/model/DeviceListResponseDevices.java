@@ -1,16 +1,52 @@
 package io.swagger.client.model;
 
 import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaClientCodegen", date = "2016-01-21T02:18:31.391Z")
 public class DeviceListResponseDevices   {
-  
 
-  
+  @JsonProperty("serial")
+  public String serial;
+
+  @JsonProperty("name")
+  public String name;
+
+  @JsonProperty("model")
+  public String model;
+
+  @JsonProperty("version")
+  public String version;
+
+  @JsonProperty("sdk")
+  public String sdk;
+
+  @JsonProperty("image")
+  public String image;
+
+  @JsonProperty("present")
+  public boolean present;
+
+  @JsonProperty("owner")
+  public Owner owner;
+
+  @JsonProperty("remoteConnectUrl")
+  public String remoteConnectUrl;
+
+  @JsonProperty("notes")
+  public String notes;
+
+  @JsonProperty("manufacturer")
+  public String manufacturer;
+
+  @JsonProperty("provider")
+  public Provider provider;
+
+  @JsonProperty("abi")
+  public String abi;
 
   @Override
   public boolean equals(Object o) {
@@ -22,7 +58,7 @@ public class DeviceListResponseDevices   {
     }
     DeviceListResponseDevices deviceListResponseDevices = (DeviceListResponseDevices) o;
 
-    return true 
+    return true
     ;
   }
 
@@ -35,7 +71,7 @@ public class DeviceListResponseDevices   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class DeviceListResponseDevices {\n");
-    
+
     sb.append("}");
     return sb.toString();
   }
@@ -51,4 +87,3 @@ public class DeviceListResponseDevices   {
     return o.toString().replace("\n", "\n    ");
   }
 }
-

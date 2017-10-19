@@ -12,11 +12,24 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.api.client.WebResource.Builder;
 
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
+
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 
 import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.MediaType;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.KeyManagementException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +59,7 @@ public class ApiClient {
   private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
   private String basePath = "http://localhost/api/v1";
   private boolean debugging = false;
+  private boolean ignoreCertError = false;
   private int connectionTimeout = 0;
 
   private Client httpClient;
@@ -67,7 +81,7 @@ public class ApiClient {
     mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
     mapper.registerModule(new JodaModule());
 
-    httpClient = buildHttpClient(debugging);
+    httpClient = buildHttpClient(debugging, ignoreCertError);
 
     // Use RFC3339 format for date and datetime.
     // See http://xml2rfc.ietf.org/public/rfc/html/rfc3339.html#anchor14
@@ -227,7 +241,19 @@ public class ApiClient {
   public ApiClient setDebugging(boolean debugging) {
     this.debugging = debugging;
     // Rebuild HTTP Client according to the new "debugging" value.
-    this.httpClient = buildHttpClient(debugging);
+    this.httpClient = buildHttpClient(debugging, ignoreCertError);
+    return this;
+  }
+
+  /**
+   * Enable/disable verification of ssl certification for this API client.
+   *
+   * @param verification To enable (true) or disable (false) verification
+   */
+  public ApiClient setIgnoreCertError(boolean ignoreCertError) {
+    this.ignoreCertError = ignoreCertError;
+    // Rebuild HTTP Client according to the new "debugging" value.
+    this.httpClient = buildHttpClient(debugging, ignoreCertError);
     return this;
   }
 
@@ -593,15 +619,41 @@ public class ApiClient {
   /**
    * Build the Client used to make HTTP requests.
    */
-  private Client buildHttpClient(boolean debugging) {
+  private Client buildHttpClient(boolean debugging, boolean ignoreCertError) {
     // Add the JSON serialization support to Jersey
     JacksonJsonProvider jsonProvider = new JacksonJsonProvider(mapper);
     DefaultClientConfig conf = new DefaultClientConfig();
+    if (ignoreCertError) {
+      try {
+        SSLContext sslcontext = SSLContext.getInstance( "TLS" );
+        sslcontext.init( null, new TrustManager[]{ new AlwaysTrustManager() }, null );
+        Map<String, Object> properties = conf.getProperties();
+        HTTPSProperties httpsProperties = new HTTPSProperties(
+            new HostnameVerifier() {
+              @Override
+              public boolean verify(String s, SSLSession sslSession) {
+                return true;
+              }
+            }, sslcontext
+        );
+        properties.put( HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, httpsProperties );
+      } catch (KeyManagementException ex) {
+        ex.printStackTrace();
+      } catch (NoSuchAlgorithmException ex) {
+        ex.printStackTrace();
+      }
+    }
     conf.getSingletons().add(jsonProvider);
     Client client = Client.create(conf);
     if (debugging) {
       client.addFilter(new LoggingFilter());
     }
     return client;
+  }
+
+  private static class AlwaysTrustManager implements X509TrustManager {
+    public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException { }
+    public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException { }
+    public X509Certificate[] getAcceptedIssuers() { return null; }
   }
 }
